@@ -1,0 +1,126 @@
+{
+  "name": "nexus-pro",
+  "version": "2.0.0",
+  "description": "NexusPro — SaaS Empresarial Completo: IA + WhatsApp + CRM + Financeiro + Kanban",
+  "main": "server.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run frontend\"",
+    "server": "node server.js",
+    "frontend": "vite --port 3000",
+    "build": "vite build",
+    "start": "node server.js",
+    "electron": "npm run build && electron electron/main.js",
+    "build:exe": "npm run build && electron-builder --win nsis --x64",
+    "build:portable": "npm run build && electron-builder --win portable --x64",
+    "package": "npm run build && pkg server.js --targets node18-win-x64 --output dist-exe/nexuspro.exe"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "electron-updater": "^6.8.3",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "node-cron": "^3.0.3",
+    "qrcode": "^1.5.3",
+    "socket.io": "^4.7.2",
+    "xlsx": "^0.18.5"
+  },
+  "optionalDependencies": {
+    "@hapi/boom": "^10.0.1",
+    "@whiskeysockets/baileys": "^6.7.5",
+    "pino": "^8.17.2"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.4.16",
+    "concurrently": "^8.2.2",
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.8.2",
+    "lucide-react": "^0.383.0",
+    "pkg": "^5.8.1",
+    "postcss": "^8.4.32",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "recharts": "^2.10.3",
+    "socket.io-client": "^4.7.2",
+    "tailwindcss": "^3.4.0",
+    "vite": "^5.0.8"
+  },
+  "build": {
+    "appId":       "com.nexuspro.app",
+    "productName": "NexusPro",
+    "copyright":   "NexusPro SaaS",
+    "publish": {
+      "provider": "github",
+      "owner": "lucbruna",
+      "repo": "nexuspro",
+      "releaseType": "release"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "electron/icon.ico",
+      "artifactName": "NexusPro-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "NexusPro",
+      "installerIcon": "electron/icon.ico",
+      "uninstallerIcon": "electron/icon.ico",
+      "installerHeaderIcon": "electron/icon.ico",
+      "deleteAppDataOnUninstall": false
+    },
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "dist/**/*",
+      "server.js",
+      "db.js",
+      "electron/**/*",
+      "node_modules/**/*",
+      "package.json",
+      "data/",
+      "uploads/",
+      "auth_info/"
+    ],
+    "extraMetadata": {
+      "main": "electron/main.js"
+    }
+  },
+  "pkg": {
+    "assets": [
+      "dist/**/*",
+      "data/**/*",
+      "auth_info/**/*"
+    ],
+    "targets": [
+      "node18-win-x64"
+    ]
+  },
+  "keywords": [
+    "saas",
+    "crm",
+    "financeiro",
+    "whatsapp",
+    "ia",
+    "kanban",
+    "nexuspro"
+  ],
+  "author": "NexusPro",
+  "license": "MIT"
+}

@@ -1,0 +1,41 @@
+[
+  {
+    "id": "mpa8353l9xh2q",
+    "createdAt": "2026-05-17T20:23:33.777Z",
+    "updatedAt": "2026-05-17T20:23:33.777Z",
+    "nome": "Mariana Costa",
+    "cargo": "Analista de RH",
+    "departamento": "RH",
+    "salario": 4800,
+    "admissao": "2024-06-01",
+    "telefone": "11966665555",
+    "email": "mariana@nexuspro.com",
+    "documentos": "CPF,RG"
+  },
+  {
+    "id": "mpa8353l2u2a0",
+    "createdAt": "2026-05-17T20:23:33.777Z",
+    "updatedAt": "2026-05-17T20:23:33.777Z",
+    "nome": "Carlos Oliveira",
+    "cargo": "Desenvolvedor",
+    "departamento": "TI",
+    "salario": 7800,
+    "admissao": "2024-01-10",
+    "telefone": "11977776666",
+    "email": "carlos@nexuspro.com",
+    "documentos": "CPF,RG,CNH"
+  },
+  {
+    "id": "mpa8353k9n2y7",
+    "createdAt": "2026-05-17T20:23:33.776Z",
+    "updatedAt": "2026-05-17T20:23:33.776Z",
+    "nome": "Ana Silva",
+    "cargo": "Analista Financeiro",
+    "departamento": "Financeiro",
+    "salario": 5200,
+    "admissao": "2024-03-15",
+    "telefone": "11988887777",
+    "email": "ana@nexuspro.com",
+    "documentos": "CPF,RG"
+  }
+]

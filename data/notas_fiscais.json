@@ -1,0 +1,16 @@
+[
+  {
+    "id": "mpa84s6ae5c9e",
+    "createdAt": "2026-05-17T20:24:50.338Z",
+    "updatedAt": "2026-05-17T20:24:50.338Z",
+    "cliente": "claudio barros",
+    "cpfCnpj": "34548572345",
+    "descricao": "trabalho roço",
+    "valorTotal": 23400,
+    "chaveAcesso": "3520260500000000000000551693662286131487995",
+    "qrCode": "https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=https%3A%2F%2Fwww.sefaz.35.gov.br%2FNFCE%2Fconsulta%3Fp%3D3520260500000000000000551693662286131487995&choe=UTF-8",
+    "dataEmissao": "2026-05-17T20:24:50.338Z",
+    "status": "autorizada",
+    "numero": 310790
+  }
+]

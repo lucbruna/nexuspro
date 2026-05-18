@@ -1,0 +1,110 @@
+[
+  {
+    "id": "mpbdah1b034gk",
+    "createdAt": "2026-05-18T15:37:00.095Z",
+    "updatedAt": "2026-05-18T15:37:00.095Z",
+    "userId": "mpa4e7i05w2vf",
+    "tipo": "auth",
+    "descricao": "Login",
+    "dados": {}
+  },
+  {
+    "id": "mpbbcwbxjp8ce",
+    "createdAt": "2026-05-18T14:42:53.997Z",
+    "updatedAt": "2026-05-18T14:42:53.997Z",
+    "userId": "mpa4e7i05w2vf",
+    "tipo": "auth",
+    "descricao": "Login",
+    "dados": {}
+  },
+  {
+    "id": "mpbb0erwctlzb",
+    "createdAt": "2026-05-18T14:33:11.372Z",
+    "updatedAt": "2026-05-18T14:33:11.372Z",
+    "userId": "mpa4e7i05w2vf",
+    "tipo": "auth",
+    "descricao": "Login",
+    "dados": {}
+  },
+  {
+    "id": "mpbazlumgfixx",
+    "createdAt": "2026-05-18T14:32:33.886Z",
+    "updatedAt": "2026-05-18T14:32:33.886Z",
+    "userId": "mpa4e7iexi5po",
+    "tipo": "auth",
+    "descricao": "Login",
+    "dados": {}
+  },
+  {
+    "id": "mpbam41k9uz4o",
+    "createdAt": "2026-05-18T14:22:04.280Z",
+    "updatedAt": "2026-05-18T14:22:04.280Z",
+    "userId": "mpa4e7i05w2vf",
+    "tipo": "auth",
+    "descricao": "Login",
+    "dados": {}
+  },
+  {
+    "id": "mpb9d0uvl9dey",
+    "createdAt": "2026-05-18T13:47:00.631Z",
+    "updatedAt": "2026-05-18T13:47:00.631Z",
+    "userId": "mpa4e7i05w2vf",
+    "tipo": "auth",
+    "descricao": "Login",
+    "dados": {}
+  },
+  {
+    "id": "mpb8w0wg245np",
+    "createdAt": "2026-05-18T13:33:47.536Z",
+    "updatedAt": "2026-05-18T13:33:47.536Z",
+    "userId": "mpa4e7i05w2vf",
+    "tipo": "auth",
+    "descricao": "Login",
+    "dados": {}
+  },
+  {
+    "id": "mpb8vjpsah23v",
+    "createdAt": "2026-05-18T13:33:25.264Z",
+    "updatedAt": "2026-05-18T13:33:25.264Z",
+    "userId": "mpa4e7i05w2vf",
+    "tipo": "auth",
+    "descricao": "Login",
+    "dados": {}
+  },
+  {
+    "id": "mpb7rsdgigvtf",
+    "createdAt": "2026-05-18T13:02:30.244Z",
+    "updatedAt": "2026-05-18T13:02:30.244Z",
+    "userId": "mpa4e7i05w2vf",
+    "tipo": "auth",
+    "descricao": "Login",
+    "dados": {}
+  },
+  {
+    "id": "mpa50qhbvfbmc",
+    "createdAt": "2026-05-17T18:57:42.671Z",
+    "updatedAt": "2026-05-17T18:57:42.671Z",
+    "userId": "mpa4e7i05w2vf",
+    "tipo": "auth",
+    "descricao": "Login",
+    "dados": {}
+  },
+  {
+    "id": "mpa5076fe2ao5",
+    "createdAt": "2026-05-17T18:57:17.655Z",
+    "updatedAt": "2026-05-17T18:57:17.656Z",
+    "userId": "mpa4e7i05w2vf",
+    "tipo": "auth",
+    "descricao": "Login",
+    "dados": {}
+  },
+  {
+    "id": "mpa4elkxt4e9t",
+    "createdAt": "2026-05-17T18:40:29.889Z",
+    "updatedAt": "2026-05-17T18:40:29.889Z",
+    "userId": "mpa4e7i05w2vf",
+    "tipo": "auth",
+    "descricao": "Login",
+    "dados": {}
+  }
+]

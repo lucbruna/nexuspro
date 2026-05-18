@@ -1,0 +1,42 @@
+[
+  {
+    "id": "mpa4e7jw4nch6",
+    "createdAt": "2026-05-17T18:40:11.708Z",
+    "updatedAt": "2026-05-17T18:40:11.708Z",
+    "nome": "Pesquisa NPS",
+    "categoria": "satisfacao",
+    "conteudo": "{{nome}}, de 0 a 10, quanto nos recomendaria? Sua opinião é valiosa! ⭐"
+  },
+  {
+    "id": "mpa4e7jwrw55n",
+    "createdAt": "2026-05-17T18:40:11.708Z",
+    "updatedAt": "2026-05-17T18:40:11.708Z",
+    "nome": "Lembrete Vencimento",
+    "categoria": "lembrete",
+    "conteudo": "Lembrete: sua mensalidade de {{valor}} vence em {{vencimento}}. 📅"
+  },
+  {
+    "id": "mpa4e7jv7k2hx",
+    "createdAt": "2026-05-17T18:40:11.707Z",
+    "updatedAt": "2026-05-17T18:40:11.707Z",
+    "nome": "Cobrança Urgente",
+    "categoria": "cobranca",
+    "conteudo": "⚠️ {{nome}}, sua mensalidade de {{valor}} está {{diasAtraso}} dias em atraso."
+  },
+  {
+    "id": "mpa4e7jvqe5wm",
+    "createdAt": "2026-05-17T18:40:11.707Z",
+    "updatedAt": "2026-05-17T18:40:11.707Z",
+    "nome": "Cobrança Amigável",
+    "categoria": "cobranca",
+    "conteudo": "Olá {{nome}}, sua mensalidade de {{valor}} está em aberto. Podemos ajudar? 😊"
+  },
+  {
+    "id": "mpa4e7jun49lk",
+    "createdAt": "2026-05-17T18:40:11.706Z",
+    "updatedAt": "2026-05-17T18:40:11.706Z",
+    "nome": "Boas-vindas",
+    "categoria": "onboarding",
+    "conteudo": "Olá {{nome}}! Bem-vindo(a) à nossa empresa! 🎉"
+  }
+]

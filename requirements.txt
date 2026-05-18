@@ -1,0 +1,299 @@
+# ══════════════════════════════════════════════════════════════════════════════
+#   NexusPro SaaS v2.0 -- requirements.txt
+#   Sistema Empresarial Completo: IA + WhatsApp + CRM + Financeiro + Kanban
+#   Instalar: npm install --legacy-peer-deps
+# ══════════════════════════════════════════════════════════════════════════════
+
+# REQUISITOS DO SISTEMA
+# Node.js  >= 18.0.0    https://nodejs.org
+# npm      >= 9.0.0     incluido com Node.js
+# Windows  10 / 11
+# RAM      >= 1 GB
+# Disco    >= 500 MB
+
+# ──────────────────────────────────────────────────────────────────────────────
+#  BACKEND PRODUCAO
+# ──────────────────────────────────────────────────────────────────────────────
+
+express@^4.18.2
+# Servidor HTTP REST API — todas as rotas do sistema
+# Auth, CRM, Financeiro, WhatsApp, IA, Kanban, Relatorios
+
+bcryptjs@^2.4.3
+# Hash de senhas (puro JS, sem compilacao nativa)
+# Usado no login e alteracao de senha
+
+jsonwebtoken@^9.0.2
+# Tokens JWT para autenticacao stateless
+# Expiracao: 12h | Segredo configuravel
+
+cors@^2.8.5
+# Cross-origin requests em desenvolvimento
+
+socket.io@^4.7.2
+# WebSocket — atualizacoes em tempo real
+# Stats, notificacoes, Kanban, fila WhatsApp, chat IA
+
+multer@^1.4.5-lts.1
+# Upload de arquivos (Excel/CSV para importacao de clientes)
+
+xlsx@^0.18.5
+# SheetJS — leitura e escrita de planilhas .xlsx
+# Import clientes, export financeiro, export relatorios
+
+node-cron@^3.0.3
+# Agendamento: alertas de inadimplencia (9h diario)
+
+qrcode@^1.5.3
+# Converte QR Code do Baileys em imagem base64
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+#  WHATSAPP (opcional — instalar separadamente)
+# ──────────────────────────────────────────────────────────────────────────────
+
+# Para envio REAL de WhatsApp, instale apos o npm install:
+#   npm install @whiskeysockets/baileys @hapi/boom pino
+#
+# Sem essas libs, o sistema funciona normalmente em todos os outros modulos.
+# O modulo WhatsApp exibira instrucoes de instalacao.
+
+@whiskeysockets/baileys@^6.7.5   [opcional]
+# Protocolo WebSocket direto com servidores WhatsApp
+# QR Code -> sessao persistente -> envio real de mensagens
+# Sem Chrome/Puppeteer - muito mais leve
+
+@hapi/boom@^10.0.1               [opcional]
+# Tratamento de erros HTTP — dependencia do Baileys
+
+pino@^8.17.2                     [opcional]
+# Logger silencioso usado pelo Baileys internamente
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+#  FRONTEND / DEV
+# ──────────────────────────────────────────────────────────────────────────────
+
+react@^18.2.0
+react-dom@^18.2.0
+# UI library — hooks, context, componentes funcionais
+
+vite@^5.0.8
+@vitejs/plugin-react@^4.2.1
+# Bundler ultrarapido com HMR e Fast Refresh
+
+recharts@^2.10.3
+# Graficos SVG: AreaChart, BarChart, PieChart, ComposedChart, LineChart
+# Dashboard KPIs, fluxo de caixa, previsao receita, status clientes
+
+lucide-react@^0.383.0
+# Icones SVG: Zap, Users, DollarSign, MessageSquare, Bot, Layers...
+
+jspdf@^2.5.1
+jspdf-autotable@^3.8.2
+# PDF no browser — relatorios com header, tabelas coloridas, rodape
+
+socket.io-client@^4.7.2
+# Conecta React ao servidor WebSocket
+
+tailwindcss@^3.4.0
+postcss@^8.4.32
+autoprefixer@^10.4.16
+# CSS utilitario + processamento
+
+concurrently@^8.2.2
+# Roda server.js + vite simultaneamente: npm run dev
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+#  DESKTOP .EXE
+# ──────────────────────────────────────────────────────────────────────────────
+
+electron@^28.0.0
+electron-builder@^24.9.1
+# App desktop -> dist-electron/NexusPro.exe (~130MB)
+# Janela frameless, bandeja do sistema, sessao persistente
+
+pkg@^5.8.1
+# Servidor standalone -> dist-exe/nexuspro.exe (~60MB)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+#  INTELIGENCIA ARTIFICIAL (opcional)
+# ──────────────────────────────────────────────────────────────────────────────
+# O sistema funciona com motor local de regras SEM chave de API.
+# Com chave, as respostas sao muito mais inteligentes e contextuais.
+#
+# Anthropic Claude:  https://console.anthropic.com   -> sk-ant-...
+# OpenAI GPT-4o:     https://platform.openai.com     -> sk-...
+#
+# Configure em: Dashboard -> Configuracoes -> Inteligencia Artificial
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  USUARIOS PADRAO (criados automaticamente no primeiro uso)
+# ══════════════════════════════════════════════════════════════════════════════
+#
+#  Email:                         Senha:     Perfil:
+#  admin@nexuspro.com             nexus123   super_admin (acesso total)
+#  financeiro@nexuspro.com        nexus123   financeiro
+#  atendimento@nexuspro.com       nexus123   atendimento
+#
+#  Perfis disponiveis:
+#  super_admin  - Acesso total, gerencia usuarios, todas as configs
+#  admin        - Acesso total exceto gerenciar super_admin
+#  financeiro   - CRM, Financeiro, Relatorios, WhatsApp
+#  atendimento  - CRM, WhatsApp, Agenda
+#  visualizador - Somente leitura do Dashboard
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  FUNCIONALIDADES COMPLETAS
+# ══════════════════════════════════════════════════════════════════════════════
+#
+#  LOGIN & SEGURANCA
+#  - Tela de login com animacao premium
+#  - JWT com expiracao de 12h
+#  - Bcrypt para hash de senhas
+#  - Multi-usuario com 5 perfis de permissao
+#  - Alteracao de senha na conta
+#  - Contas demo pre-configuradas
+#
+#  DASHBOARD
+#  - 8 KPIs em tempo real via WebSocket
+#  - Grafico de fluxo de caixa (Entradas/Saidas/Saldo por mes/ano)
+#  - Pizza de status dos clientes
+#  - Previsao de receita IA (6 meses)
+#  - Grafico de receita por plano
+#  - Painel de insights gerados por IA
+#  - Lista de inadimplentes urgentes com botao WA
+#  - Alerta visual de inadimplencia no topo
+#
+#  CRM -- GESTAO DE CLIENTES
+#  - Tabela com busca full-text e 5 filtros combinados
+#  - Status de pagamento por situacao: Em Dia / Atrasado / Vencendo / A Vencer
+#  - Score de saude do cliente (barra visual)
+#  - Registrar pagamento com 1 clique (lanca transacao automaticamente)
+#  - Ficha completa com historico de 12 meses
+#  - Botao WhatsApp em cada linha
+#  - CRUD completo: criar, editar, excluir
+#  - Importar clientes via Excel (.xlsx / .csv)
+#  - Exportar para Excel e PDF profissional
+#  - Selecao multipla para acoes em massa
+#
+#  FINANCEIRO
+#  - Lancamentos de entradas e saidas
+#  - Grafico de fluxo de caixa anual (ComposedChart)
+#  - Top despesas por categoria (barra proporcional)
+#  - Filtro por tipo, mes e ano
+#  - Exportar extrato para Excel
+#  - Categorias personalizaveis
+#
+#  WHATSAPP (sem API oficial)
+#  - QR Code via Baileys para conectar
+#  - Sessao persistente (escaneia 1x so)
+#  - Envio individual com preview da mensagem
+#  - Campanhas em massa por grupo (Inadimplentes / Vencendo / Todos)
+#  - Fila de envio com status por mensagem
+#  - Delay anti-spam configuravel
+#  - Simulacao de digitacao humana
+#  - Templates de mensagem com variaveis
+#  - Historico de mensagens enviadas e recebidas
+#  - Estatisticas de envio
+#
+#  CHAT COM IA
+#  - Interface estilo ChatGPT
+#  - Motor local de regras (sem API)
+#  - Respostas avancadas com Claude ou OpenAI
+#  - Resposta com: texto + tabela + grafico + alertas + acoes
+#  - Exportar resultado para PDF ou Excel
+#  - Sugestoes de perguntas pre-definidas
+#  - Historico de conversas
+#  - Analise de planilhas carregadas
+#
+#  KANBAN -- PIPELINE DE VENDAS
+#  - 6 colunas: Prospeccao, Qualificacao, Proposta, Negociacao, Ganho, Perdido
+#  - Drag & drop entre colunas
+#  - Cards com: valor, empresa, contato, prioridade, prazo, responsavel
+#  - Botoes rapidos para mover entre colunas
+#  - Total do pipeline e valor ganho
+#  - Cores por prioridade (alta/media/baixa)
+#
+#  AGENDA
+#  - Calendario de vencimentos dos proximos 30 dias
+#  - Grupos: Vencidos / Vencendo / Proximos / Em Dia
+#  - Botao WhatsApp para cobranca rapida em cada item
+#
+#  RELATORIOS
+#  - PDF profissional completo (jsPDF + autoTable)
+#    Header com gradiente, resumo executivo, inadimplentes, extrato
+#  - Export Excel: todos clientes, financeiro do mes
+#  - Import Excel de clientes
+#  - Selecao de periodo (mes/ano)
+#
+#  CONFIGURACOES
+#  - Dados da empresa (nome, CNPJ, email, telefone)
+#  - Gerenciamento de usuarios (criar, editar, ativar/desativar)
+#  - Chave API IA (Claude ou OpenAI) com mascara de seguranca
+#  - Configuracao de delays WhatsApp
+#  - Mensagem padrao de cobranca com variaveis
+#  - Alteracao de senha
+#
+#  INFRAESTRUTURA
+#  - Banco de dados JSON local (sem PostgreSQL necessario)
+#  - WebSocket para atualizacoes sem reload
+#  - Cron para alertas diarios as 9h
+#  - Upload de arquivos Excel
+#  - Log de atividades
+#  - Notificacoes no sino do header
+#
+# ══════════════════════════════════════════════════════════════════════════════
+#  ESTRUTURA DE ARQUIVOS
+# ══════════════════════════════════════════════════════════════════════════════
+#
+#  nexus-pro/
+#  ├── run.bat               <- Iniciar (duplo clique)
+#  ├── build-exe.bat         <- Gerar .exe
+#  ├── server.js             <- Backend completo
+#  ├── db.js                 <- Banco de dados JSON
+#  ├── package.json
+#  ├── requirements.txt
+#  ├── vite.config.js
+#  ├── tailwind.config.js
+#  ├── postcss.config.js
+#  ├── index.html            <- Splash screen premium
+#  ├── data/                 <- Banco de dados (criado auto)
+#  ├── uploads/              <- Upload temporario
+#  ├── auth_info/            <- Sessao WhatsApp
+#  ├── src/
+#  │   ├── App.jsx           <- Roteador + layout + topbar
+#  │   ├── main.jsx
+#  │   ├── index.css
+#  │   ├── contexts/
+#  │   │   └── AuthContext.jsx
+#  │   ├── components/
+#  │   │   └── Sidebar.jsx
+#  │   └── pages/
+#  │       ├── Login.jsx
+#  │       ├── Dashboard.jsx
+#  │       ├── CRM.jsx
+#  │       ├── Financeiro.jsx
+#  │       ├── WhatsApp.jsx
+#  │       ├── ChatIA.jsx
+#  │       ├── Kanban.jsx
+#  │       ├── Agenda.jsx
+#  │       ├── Relatorios.jsx
+#  │       ├── Configuracoes.jsx
+#  │       └── Pages.jsx     <- Kanban+Agenda+Relatorios+Config
+#  └── electron/
+#      ├── main.js
+#      └── preload.js
+#
+# ══════════════════════════════════════════════════════════════════════════════
+#  COMANDOS
+#  npm install --legacy-peer-deps   Instalar dependencias
+#  npm run dev                      Desenvolvimento (hot reload)
+#  npm run build && npm start       Producao
+#  npm run build:exe                .exe Electron
+#  npm run package                  .exe PKG
+# ══════════════════════════════════════════════════════════════════════════════

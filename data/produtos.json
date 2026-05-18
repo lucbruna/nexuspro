@@ -1,0 +1,57 @@
+[
+  {
+    "id": "mpa8353kgqnmr",
+    "createdAt": "2026-05-17T20:23:33.776Z",
+    "updatedAt": "2026-05-17T20:23:33.776Z",
+    "nome": "Papel A4 (cx)",
+    "codigo": "PP-001",
+    "categoria": "Papelaria",
+    "quantidade": 50,
+    "preco": 180,
+    "validade": ""
+  },
+  {
+    "id": "mpa8353jbic76",
+    "createdAt": "2026-05-17T20:23:33.775Z",
+    "updatedAt": "2026-05-17T20:23:33.775Z",
+    "nome": "Mouse Sem Fio",
+    "codigo": "MS-001",
+    "categoria": "Informática",
+    "quantidade": 30,
+    "preco": 120,
+    "validade": ""
+  },
+  {
+    "id": "mpa8353j2u91i",
+    "createdAt": "2026-05-17T20:23:33.775Z",
+    "updatedAt": "2026-05-17T20:23:33.775Z",
+    "nome": "Cadeira Ergonômica",
+    "codigo": "CD-001",
+    "categoria": "Mobiliário",
+    "quantidade": 5,
+    "preco": 2500,
+    "validade": ""
+  },
+  {
+    "id": "mpa8353iy68od",
+    "createdAt": "2026-05-17T20:23:33.774Z",
+    "updatedAt": "2026-05-17T20:23:33.774Z",
+    "nome": "Monitor 27\"",
+    "codigo": "MN-001",
+    "categoria": "Informática",
+    "quantidade": 8,
+    "preco": 1800,
+    "validade": ""
+  },
+  {
+    "id": "mpa8353hu3567",
+    "createdAt": "2026-05-17T20:23:33.773Z",
+    "updatedAt": "2026-05-17T20:23:33.774Z",
+    "nome": "Notebook Dell",
+    "codigo": "NB-001",
+    "categoria": "Informática",
+    "quantidade": 15,
+    "preco": 4500,
+    "validade": ""
+  }
+]

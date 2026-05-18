@@ -1,0 +1,40 @@
+[
+  {
+    "id": "mpb8tlwoehkla",
+    "createdAt": "2026-05-18T13:31:54.792Z",
+    "updatedAt": "2026-05-18T13:31:54.792Z",
+    "categoria": "peticao",
+    "titulo": "Peticao inicial - cobranca",
+    "modelo": "inicial",
+    "cliente": "Cliente Exemplo Ltda",
+    "parteContraria": "Fornecedor Alfa",
+    "conteudo": "EXCELENTISSIMO(A) SENHOR(A) DOUTOR(A) JUIZ(A)\n\nMinuta inicial de cobranca contratual.",
+    "status": "rascunho"
+  },
+  {
+    "id": "mpb8tlwn7u5jm",
+    "createdAt": "2026-05-18T13:31:54.791Z",
+    "updatedAt": "2026-05-18T13:31:54.791Z",
+    "categoria": "processo",
+    "numero": "0001234-56.2026.8.26.0100",
+    "cliente": "Cliente Exemplo Ltda",
+    "parteContraria": "Fornecedor Alfa",
+    "area": "Civel",
+    "classe": "Acao de cobranca",
+    "tribunal": "TJSP",
+    "comarca": "Sao Paulo",
+    "vara": "1 Vara Civel",
+    "fase": "Conhecimento",
+    "status": "andamento",
+    "rito": "Comum",
+    "valorCausa": 25000,
+    "prazo": "2026-06-10",
+    "responsavel": "Advogado responsavel",
+    "objeto": "Cobranca contratual com documentos anexos.",
+    "estrategia": "Consolidar provas documentais, calcular saldo e propor acordo antes da audiencia.",
+    "risco": "medio",
+    "proximaAcao": "Protocolar manifestacao e conferir documentos faltantes.",
+    "documentos": "Contrato, notas fiscais, comprovantes e e-mails.",
+    "andamento": "Processo distribuido e aguardando citacao."
+  }
+]

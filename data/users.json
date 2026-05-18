@@ -1,0 +1,38 @@
+[
+  {
+    "id": "mpa4e7iexi5po",
+    "createdAt": "2026-05-17T18:40:11.654Z",
+    "updatedAt": "2026-05-17T18:40:11.654Z",
+    "nome": "Maria Atendimento",
+    "email": "atendimento@nexuspro.com",
+    "senha": "$2a$10$KEGdplfzypC01ri/F5KgfeUhZeLyw46uTvBCjm5IzCpFK28swdr.2",
+    "role": "atendimento",
+    "ativo": true,
+    "avatar": "MA",
+    "cor": "#06b6d4"
+  },
+  {
+    "id": "mpa4e7i2r90tb",
+    "createdAt": "2026-05-17T18:40:11.642Z",
+    "updatedAt": "2026-05-17T18:40:11.642Z",
+    "nome": "João Financeiro",
+    "email": "financeiro@nexuspro.com",
+    "senha": "$2a$10$KEGdplfzypC01ri/F5KgfeUhZeLyw46uTvBCjm5IzCpFK28swdr.2",
+    "role": "financeiro",
+    "ativo": true,
+    "avatar": "JF",
+    "cor": "#22c55e"
+  },
+  {
+    "id": "mpa4e7i05w2vf",
+    "createdAt": "2026-05-17T18:40:11.640Z",
+    "updatedAt": "2026-05-17T18:40:11.641Z",
+    "nome": "Administrador",
+    "email": "admin@nexuspro.com",
+    "senha": "$2a$10$KEGdplfzypC01ri/F5KgfeUhZeLyw46uTvBCjm5IzCpFK28swdr.2",
+    "role": "super_admin",
+    "ativo": true,
+    "avatar": "AD",
+    "cor": "#6366f1"
+  }
+]
