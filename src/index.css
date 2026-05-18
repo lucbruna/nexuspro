@@ -7,10 +7,33 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body, #root { height: 100%; width: 100%; overflow: hidden; }
 
+:root {
+  --bg: #020408; --surface: #060b14; --card: #0a1020; --card2: #0f1830;
+  --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.13);
+  --indigo: #6366f1; --indigoDim: rgba(99,102,241,0.12); --indigoBorder: rgba(99,102,241,0.3);
+  --purple: #8b5cf6; --purpleDim: rgba(139,92,246,0.12);
+  --cyan: #06b6d4; --cyanDim: rgba(6,182,212,0.12);
+  --green: #22c55e; --greenDim: rgba(34,197,94,0.12);
+  --red: #f43f5e; --redDim: rgba(244,63,94,0.12);
+  --amber: #f59e0b; --amberDim: rgba(245,158,11,0.12);
+  --text: #f1f5f9; --sub: #94a3b8; --muted: #475569;
+}
+[data-theme="light"] {
+  --bg: #f8fafc; --surface: #f1f5f9; --card: #ffffff; --card2: #f8fafc;
+  --border: rgba(0,0,0,0.08); --border2: rgba(0,0,0,0.15);
+  --indigo: #4f46e5; --indigoDim: rgba(79,70,229,0.1); --indigoBorder: rgba(79,70,229,0.25);
+  --purple: #7c3aed; --purpleDim: rgba(124,58,237,0.1);
+  --cyan: #0891b2; --cyanDim: rgba(8,145,178,0.1);
+  --green: #16a34a; --greenDim: rgba(22,163,74,0.1);
+  --red: #dc2626; --redDim: rgba(220,38,38,0.1);
+  --amber: #d97706; --amberDim: rgba(217,119,6,0.1);
+  --text: #0f172a; --sub: #475569; --muted: #94a3b8;
+}
+
 body {
   font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #020408;
-  color: #f1f5f9;
+  background: var(--bg);
+  color: var(--text);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -44,9 +67,17 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance:none; width:14px;
 @keyframes fadeIn   { from{opacity:0} to{opacity:1} }
 @keyframes spin     { to{transform:rotate(360deg)} }
 @keyframes typing-blink { 0%,80%,100%{transform:scale(0);opacity:0} 40%{transform:scale(1);opacity:1} }
+@keyframes shimmer  { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
 
 .animate-fade-up { animation: fadeInUp 0.25s ease forwards; }
 .animate-fade-in { animation: fadeIn   0.2s  ease forwards; }
+
+/* Skeleton loading */
+.skeleton-box {
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
 
 /* Typing indicator */
 .typing-dot { display:inline-block; width:7px; height:7px; border-radius:50%; background:#6366f1; margin:0 2px; animation:typing-blink 1.4s ease-in-out infinite; }

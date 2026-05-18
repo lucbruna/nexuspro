@@ -1,0 +1,6 @@
+atualizar no GitHub
+
+
+git add .
+git commit -m "nova atualização"
+git push

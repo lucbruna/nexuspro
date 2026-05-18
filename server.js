@@ -3,6 +3,7 @@
  * Auth JWT · CRM · Financeiro · WhatsApp · IA · Kanban
  */
 "use strict";
+require("dotenv").config();
 const express   = require("express");
 const cors      = require("cors");
 const http      = require("http");
@@ -15,6 +16,8 @@ const cron      = require("node-cron");
 const path      = require("path");
 const fs        = require("fs");
 const qrcode    = require("qrcode");
+const rateLimit = require("express-rate-limit");
+const archiver  = require("archiver");
 const db        = require("./db");
 
 const app    = express();
@@ -26,7 +29,15 @@ app.use(express.json({ limit:"50mb" }));
 app.use(express.static(path.join(__dirname,"dist")));
 
 const upload     = multer({ dest:"uploads/", limits:{ fileSize:50*1024*1024 } });
-const JWT_SECRET = "nexuspro_jwt_2025_secure_key_xyz";
+const JWT_SECRET = process.env.JWT_SECRET || "nexuspro_jwt_2025_fallback_key";
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: "Muitas tentativas. Tente novamente em 15 minutos." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 const uid   = () => Date.now().toString(36)+Math.random().toString(36).slice(2,7);
@@ -184,8 +195,9 @@ app.get("/api/status", (_,res)=>res.json({ok:true,version:"2.0.0",wa:waStatus}))
 app.get("/api/stats",  auth(), (_,res)=>res.json(getStats()));
 
 // AUTH
-app.post("/api/auth/login", async(req,res)=>{
+app.post("/api/auth/login", loginLimiter, async(req,res)=>{
   const {email,senha}=req.body;
+  if(!email||!senha) return res.status(400).json({error:"Email e senha obrigatórios"});
   const u=db.users.findOne({email}); if(!u) return res.status(401).json({error:"Credenciais inválidas"});
   if(!u.ativo) return res.status(401).json({error:"Conta desativada"});
   if(!(await bcrypt.compare(senha,u.senha))) return res.status(401).json({error:"Credenciais inválidas"});
@@ -193,11 +205,11 @@ app.post("/api/auth/login", async(req,res)=>{
   db.log(u.id,"auth","Login"); const {senha:_,...safe}=u; res.json({ok:true,token,user:safe});
 });
 app.get("/api/auth/me",     auth(), (req,res)=>{ const {senha:_,...u}=req.user; res.json(u); });
-app.put("/api/auth/senha",  auth(), async(req,res)=>{ const {senhaAtual,novaSenha}=req.body; if(!(await bcrypt.compare(senhaAtual,req.user.senha))) return res.status(400).json({error:"Senha atual incorreta"}); db.users.update(req.user.id,{senha:await bcrypt.hash(novaSenha,10)}); res.json({ok:true}); });
+app.put("/api/auth/senha",  auth(), async(req,res)=>{ const {senhaAtual,novaSenha}=req.body; if(!(await bcrypt.compare(senhaAtual,req.user.senha))) return res.status(400).json({error:"Senha atual incorreta"}); if(!novaSenha||novaSenha.length<6) return res.status(400).json({error:"Nova senha deve ter no mínimo 6 caracteres"}); db.users.update(req.user.id,{senha:await bcrypt.hash(novaSenha,10)}); res.json({ok:true}); });
 
 // USERS
 app.get("/api/users",       auth(["super_admin","admin"]), (_,res)=>res.json(db.users.all.map(u=>({...u,senha:undefined}))));
-app.post("/api/users",      auth(["super_admin"]), async(req,res)=>{ const {nome,email,senha,role,cor}=req.body; if(db.users.findOne({email})) return res.status(400).json({error:"Email já existe"}); const u=db.users.insert({nome,email,senha:await bcrypt.hash(senha||"nexus123",10),role:role||"atendimento",ativo:true,avatar:nome?.slice(0,2).toUpperCase()||"??",cor:cor||"#6366f1"}); res.json({ok:true,user:{...u,senha:undefined}}); });
+app.post("/api/users",      auth(["super_admin"]), async(req,res)=>{ const {nome,email,senha,role,cor}=req.body; if(!nome||!email) return res.status(400).json({error:"Nome e email obrigatórios"}); if(db.users.findOne({email})) return res.status(400).json({error:"Email já existe"}); const pw=senha||"nexus123"; if(pw.length<6) return res.status(400).json({error:"Senha deve ter no mínimo 6 caracteres"}); const u=db.users.insert({nome,email,senha:await bcrypt.hash(pw,10),role:role||"atendimento",ativo:true,avatar:nome?.slice(0,2).toUpperCase()||"??",cor:cor||"#6366f1"}); res.json({ok:true,user:{...u,senha:undefined}}); });
 app.put("/api/users/:id",   auth(["super_admin"]), (req,res)=>{ const u=db.users.update(req.params.id,req.body); res.json({ok:true,user:{...u,senha:undefined}}); });
 app.delete("/api/users/:id",auth(["super_admin"]), (req,res)=>{ db.users.delete(req.params.id); res.json({ok:true}); });
 
@@ -213,8 +225,19 @@ app.get("/api/clientes", auth(), (req,res)=>{
 });
 app.get("/api/clientes/export", auth(), (_,res)=>{ const rows=db.clientes.all.map(c=>({Nome:c.nome,Email:c.email,Telefone:c.telefone,Plano:c.plano,Valor:c.valor,Status:c.status,"Situação":calcSit(c),Vencimento:c.dataVencimento,"Dias Atraso":diasAtraso(c.dataVencimento),Cidade:c.cidade})); const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),"Clientes");const buf=XLSX.write(wb,{type:"buffer",bookType:"xlsx"});res.setHeader("Content-Disposition",`attachment; filename="clientes_${Date.now()}.xlsx"`);res.setHeader("Content-Type","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");res.send(buf); });
 app.get("/api/clientes/:id",   auth(), (req,res)=>{ const c=db.clientes.findById(req.params.id); if(!c) return res.status(404).json({error:"Não encontrado"}); res.json({...c,_situacao:calcSit(c),_diasAtraso:diasAtraso(c.dataVencimento)}); });
-app.post("/api/clientes",      auth(), (req,res)=>{ const c=db.clientes.insert({...req.body,pagamentos:[],tags:[],score:100}); io.emit("data_update",{type:"cliente"}); res.json({ok:true,cliente:c}); });
-app.put("/api/clientes/:id",   auth(), (req,res)=>{ const c=db.clientes.update(req.params.id,req.body); io.emit("data_update",{type:"cliente"}); res.json({ok:true,cliente:c}); });
+app.post("/api/clientes",      auth(), (req,res)=>{
+  const body={...req.body};
+  if(body.portalSenha) body.portalSenha=bcrypt.hashSync(body.portalSenha,10);
+  const c=db.clientes.insert({...body,pagamentos:[],tags:[],score:100});
+  io.emit("data_update",{type:"cliente"}); res.json({ok:true,cliente:c});
+});
+app.put("/api/clientes/:id",   auth(), (req,res)=>{
+  const body = { ...req.body };
+  if (body.portalSenha) body.portalSenha = bcrypt.hashSync(body.portalSenha, 10);
+  const c = db.clientes.update(req.params.id, body);
+  io.emit("data_update", { type: "cliente" });
+  res.json({ ok: true, cliente: c });
+});
 app.delete("/api/clientes/:id",auth(["super_admin","admin"]), (req,res)=>{ db.clientes.delete(req.params.id); io.emit("data_update",{type:"cliente"}); res.json({ok:true}); });
 app.post("/api/clientes/:id/pagar", auth(), (req,res)=>{ const c=db.clientes.findById(req.params.id); if(!c) return res.status(404).json({error:"Não encontrado"}); const m=mesN(),a=anoN(),valor=req.body.valor||c.valor; if(!c.pagamentos) c.pagamentos=[]; const idx=c.pagamentos.findIndex(p=>p.mes===m&&p.ano===a); const pag={mes:m,ano:a,pago:true,dataPagamento:hoje(),valor}; if(idx>=0) c.pagamentos[idx]=pag; else c.pagamentos.push(pag); db.clientes.update(c.id,{pagamentos:c.pagamentos}); db.transacoes.insert({tipo:"entrada",categoria:"Mensalidade",descricao:`Mensalidade ${c.nome.split(" ")[0]}`,valor,data:hoje(),status:"pago",clienteId:c.id}); io.emit("data_update",{type:"pagamento"}); res.json({ok:true}); });
 app.post("/api/clientes/import", auth(["super_admin","admin"]), upload.single("file"), (req,res)=>{ if(!req.file) return res.status(400).json({error:"Arquivo não enviado"}); try { const wb=XLSX.readFile(req.file.path);const ws=wb.Sheets[wb.SheetNames[0]];const rows=XLSX.utils.sheet_to_json(ws,{defval:""});let n=0; rows.forEach(r=>{ if(!r.nome&&!r.Nome) return; db.clientes.insert({nome:String(r.nome||r.Nome||"").trim(),email:String(r.email||r.Email||"").trim(),telefone:String(r.telefone||r.Telefone||"").replace(/\D/g,""),cpfCnpj:String(r.cpfCnpj||r["CPF/CNPJ"]||"").trim(),plano:String(r.plano||r.Plano||"Basic").trim(),valor:+(String(r.valor||r.Valor||"0").replace(/[R$\s.]/g,"").replace(",","."))||0,status:String(r.status||r.Status||"ativo").toLowerCase().includes("ativ")?"ativo":"inativo",dataVencimento:r.dataVencimento||hoje(),cidade:String(r.cidade||r.Cidade||"").trim(),segmento:String(r.segmento||r.Segmento||"").trim(),pagamentos:[],tags:[],score:100}); n++; }); fs.unlinkSync(req.file.path); io.emit("data_update",{type:"cliente"}); res.json({ok:true,importados:n}); } catch(e){ try{fs.unlinkSync(req.file.path);}catch(_){} res.status(500).json({error:e.message}); } });
@@ -229,6 +252,7 @@ app.delete("/api/kanban/:id",  auth(), (req,res)=>{ db.kanban.delete(req.params.
 app.get("/api/transacoes", auth(), (req,res)=>{ const {tipo,mes,ano,limit=100,offset=0}=req.query; let list=db.transacoes.all.sort((a,b)=>new Date(b.data)-new Date(a.data)); if(tipo&&tipo!=="todos") list=list.filter(t=>t.tipo===tipo); if(mes&&ano) list=list.filter(t=>{const d=new Date(t.data);return d.getMonth()+1===+mes&&d.getFullYear()===+ano;}); res.json({total:list.length,items:list.slice(+offset,+offset+ +limit)}); });
 app.post("/api/transacoes",       auth(), (req,res)=>{ const t=db.transacoes.insert({...req.body,data:req.body.data||hoje()}); io.emit("data_update",{type:"transacao"}); res.json({ok:true,transacao:t}); });
 app.delete("/api/transacoes/:id", auth(), (req,res)=>{ db.transacoes.delete(req.params.id); res.json({ok:true}); });
+app.put("/api/transacoes/:id", auth(), (req,res)=>{ const t=db.transacoes.findById(req.params.id); if(!t) return res.status(404).json({error:"Transação não encontrada"}); const upd={...t,...req.body,updatedAt:new Date().toISOString()}; db.transacoes.insert(upd); io.emit("data_update",{type:"transacao"}); res.json({ok:true}); });
 app.get("/api/analytics/mensal", auth(), (req,res)=>{ const a=req.query.ano?+req.query.ano:anoN(); const mn=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"]; res.json(mn.map((nome,i)=>{const m=i+1;const e=db.transacoes.find({tipo:"entrada"}).filter(t=>{const d=new Date(t.data);return d.getMonth()+1===m&&d.getFullYear()===a;}).reduce((s,t)=>s+t.valor,0);const s2=db.transacoes.find({tipo:"saida"}).filter(t=>{const d=new Date(t.data);return d.getMonth()+1===m&&d.getFullYear()===a;}).reduce((s,t)=>s+t.valor,0);return {nome,mes:m,entradas:e,saidas:s2,saldo:e-s2};})); });
 app.get("/api/analytics/forecast",auth(), (_,res)=>{ const h=new Date(),mn=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"]; const hist=[1,2,3].map(i=>{const d=new Date(h);d.setMonth(d.getMonth()-i);const m=d.getMonth()+1,a=d.getFullYear();return db.transacoes.find({tipo:"entrada"}).filter(t=>{const x=new Date(t.data);return x.getMonth()+1===m&&x.getFullYear()===a;}).reduce((s,t)=>s+t.valor,0);}); const media=hist.reduce((s,v)=>s+v,0)/3; res.json({previsao:Array.from({length:6},(_,i)=>{const d=new Date(h);d.setMonth(d.getMonth()+i+1);return {nome:`${mn[d.getMonth()]}/${d.getFullYear()}`,previsto:Math.round(media*(0.95+Math.random()*0.1)),otimista:Math.round(media*1.15),pessimista:Math.round(media*0.85)};}),media:Math.round(media),potencial:getStats().receitaPotencial}); });
 app.get("/api/export/financeiro", auth(), (req,res)=>{ const {mes,ano}=req.query; let list=db.transacoes.all; if(mes&&ano) list=list.filter(t=>{const d=new Date(t.data);return d.getMonth()+1===+mes&&d.getFullYear()===+ano;}); const rows=list.map(t=>({Tipo:t.tipo,Categoria:t.categoria,"Descrição":t.descricao,Valor:t.valor,Data:t.data})); const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),"Financeiro");const buf=XLSX.write(wb,{type:"buffer",bookType:"xlsx"});res.setHeader("Content-Disposition",`attachment; filename="financeiro_${Date.now()}.xlsx"`);res.setHeader("Content-Type","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");res.send(buf); });
@@ -452,6 +476,230 @@ app.get("/api/contabilidade/resumo", auth(), (_,res)=>{
 });
 app.get("/api/contabilidade/categorias", auth(), (_,res)=>{const cats=[...new Set(db.contabilidade.all.map(c=>c.categoria).filter(Boolean))];res.json(cats);});
 
+// ── PORTAL DO CLIENTE ─────────────────────────────────────────────────────────
+const portalAuth = (req, res, next) => {
+  const h = req.headers.authorization;
+  if (!h?.startsWith("Bearer ")) return res.status(401).json({ error: "Não autenticado" });
+  try {
+    const p = jwt.verify(h.slice(7), JWT_SECRET);
+    if (p.type !== "portal") return res.status(401).json({ error: "Token inválido" });
+    const c = db.clientes.findById(p.id);
+    if (!c || !c.portalAtivo) return res.status(401).json({ error: "Acesso desativado" });
+    req.cliente = c;
+    next();
+  } catch {
+    res.status(401).json({ error: "Token inválido" });
+  }
+};
+
+app.post("/api/portal/login", async (req, res) => {
+  const { email, senha } = req.body;
+  if (!email || !senha) return res.status(400).json({ error: "Email e senha obrigatórios" });
+  const c = db.clientes.findOne({ email });
+  if (!c || !c.portalAtivo || !c.portalSenha) return res.status(401).json({ error: "Credenciais inválidas" });
+  if (!(await bcrypt.compare(senha, c.portalSenha))) return res.status(401).json({ error: "Credenciais inválidas" });
+  const token = jwt.sign({ id: c.id, type: "portal" }, JWT_SECRET, { expiresIn: "7d" });
+  const { portalSenha: _, ...safe } = c;
+  res.json({ ok: true, token, cliente: safe });
+});
+
+app.get("/api/portal/me", portalAuth, (req, res) => {
+  const c = req.cliente;
+  const hoje = new Date();
+  const m = hoje.getMonth() + 1, a = hoje.getFullYear();
+  const pagoEsteMes = c.pagamentos?.some(p => p.mes === m && p.ano === a && p.pago);
+  const totalPago = (c.pagamentos || []).filter(p => p.pago).reduce((s, p) => s + (p.valor || c.valor || 0), 0);
+  res.json({
+    ...c,
+    _situacao: calcSit(c),
+    _diasAtraso: diasAtraso(c.dataVencimento),
+    pagoEsteMes: !!pagoEsteMes,
+    totalPago,
+    mesesPagos: (c.pagamentos || []).filter(p => p.pago).length,
+  });
+});
+
+app.get("/api/portal/extrato", portalAuth, (req, res) => {
+  const c = req.cliente;
+  const hoje = new Date();
+  const ano = hoje.getFullYear();
+  const historico = Array.from({ length: 12 }, (_, i) => {
+    const mes = i + 1;
+    const p = (c.pagamentos || []).find(x => x.mes === mes && x.ano === ano);
+    return {
+      mes: ["", "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"][mes],
+      mesNum: mes,
+      ano,
+      pago: p?.pago || false,
+      valor: p?.valor || c.valor || 0,
+      dataPagamento: p?.dataPagamento || null,
+    };
+  });
+  res.json({ cliente: c.nome, plano: c.plano, valor: c.valor, historico });
+});
+
+app.get("/api/portal/transacoes", portalAuth, (req, res) => {
+  const c = req.cliente;
+  const trans = db.transacoes.find({ clienteId: c.id }).slice(0, 20);
+  res.json(trans);
+});
+
+// ── MERCADO PAGO ───────────────────────────────────────────────────────────────
+const { MercadoPagoConfig, Payment, Preference } = require("mercadopago");
+const MP_ACCESS_TOKEN = process.env.MERCADO_PAGO_ACCESS_TOKEN;
+const MP_PUBLIC_KEY   = process.env.MERCADO_PAGO_PUBLIC_KEY;
+const mpClient = MP_ACCESS_TOKEN && !MP_ACCESS_TOKEN.startsWith("TEST-000")
+  ? new MercadoPagoConfig({ accessToken: MP_ACCESS_TOKEN })
+  : null;
+
+function mpPagar(cliente, valor, descricao, paymentMethod = "pix") {
+  if (!mpClient) throw new Error("Mercado Pago não configurado");
+  const payment = new Payment(mpClient);
+  return payment.create({
+    body: {
+      transaction_amount: valor,
+      description: descricao,
+      payment_method_id: paymentMethod,
+      payer: {
+        email: cliente.email || "cliente@email.com",
+        first_name: cliente.nome?.split(" ")[0] || "Cliente",
+        last_name: cliente.nome?.split(" ").slice(1).join(" ") || "",
+        identification: cliente.cpfCnpj ? { type: cliente.cpfCnpj.length > 11 ? "CNPJ" : "CPF", number: cliente.cpfCnpj.replace(/\D/g, "") } : undefined,
+      },
+      notification_url: `${process.env.BASE_URL || `http://localhost:${PORT}`}/api/mercado-pago/webhook`,
+    },
+  });
+}
+
+app.post("/api/mercado-pago/gerar-pagamento", portalAuth, async (req, res) => {
+  try {
+    if (!mpClient) return res.status(400).json({ error: "Mercado Pago não configurado. Defina MERCADO_PAGO_ACCESS_TOKEN no .env" });
+    const { mes, ano, valor } = req.body;
+    const c = req.cliente;
+    const m = mes || new Date().getMonth() + 1;
+    const a = ano || new Date().getFullYear();
+    const v = valor || c.valor || 0;
+    if (!v) return res.status(400).json({ error: "Valor inválido" });
+    if (c.pagamentos?.some(p => p.mes === m && p.ano === a && p.pago))
+      return res.status(400).json({ error: "Este mês já está pago" });
+
+    const result = await mpPagar(c, v, `Mensalidade ${c.nome} - ${m}/${a}`, req.body.metodo || "pix");
+
+    // Salva referência do pagamento pendente
+    const cobranca = {
+      id: result.id,
+      mes: m,
+      ano: a,
+      valor: v,
+      status: result.status,
+      metodo: req.body.metodo || "pix",
+      qrCode: result.point_of_interaction?.transaction_data?.qr_code || null,
+      qrCodeBase64: result.point_of_interaction?.transaction_data?.qr_code_base64 || null,
+      linkPagamento: result.point_of_interaction?.transaction_data?.ticket_url || null,
+      criadoEm: new Date().toISOString(),
+    };
+    if (!c.cobrancas) c.cobrancas = [];
+    c.cobrancas.push(cobranca);
+    db.clientes.update(c.id, { cobrancas: c.cobrancas });
+
+    res.json({
+      ok: true,
+      pagamento: cobranca,
+      publicKey: MP_PUBLIC_KEY,
+    });
+  } catch (e) {
+    console.error("MP error:", e);
+    res.status(500).json({ error: e.message || "Erro ao gerar pagamento" });
+  }
+});
+
+app.post("/api/mercado-pago/admin-gerar-cobranca", auth(), async (req, res) => {
+  try {
+    if (!mpClient) return res.status(400).json({ error: "Mercado Pago não configurado" });
+    const { clienteId, mes, ano, valor, metodo } = req.body;
+    const c = db.clientes.findById(clienteId);
+    if (!c) return res.status(404).json({ error: "Cliente não encontrado" });
+    const m = mes || new Date().getMonth() + 1;
+    const a = ano || new Date().getFullYear();
+    const v = valor || c.valor || 0;
+    const result = await mpPagar(c, v, `Mensalidade ${c.nome} - ${m}/${a}`, metodo || "pix");
+    const cobranca = {
+      id: result.id,
+      mes: m, ano: a, valor: v,
+      status: result.status,
+      metodo: metodo || "pix",
+      qrCode: result.point_of_interaction?.transaction_data?.qr_code || null,
+      qrCodeBase64: result.point_of_interaction?.transaction_data?.qr_code_base64 || null,
+      linkPagamento: result.point_of_interaction?.transaction_data?.ticket_url || null,
+      criadoEm: new Date().toISOString(),
+    };
+    if (!c.cobrancas) c.cobrancas = [];
+    c.cobrancas.push(cobranca);
+    db.clientes.update(c.id, { cobrancas: c.cobrancas });
+    res.json({ ok: true, pagamento: cobranca });
+  } catch (e) {
+    res.status(500).json({ error: e.message || "Erro ao gerar cobrança" });
+  }
+});
+
+app.post("/api/mercado-pago/webhook", async (req, res) => {
+  try {
+    const event = req.body;
+    if (!event || !event.data?.id) return res.sendStatus(200);
+
+    const payment = new Payment(mpClient);
+    const mpResult = await payment.get({ id: event.data.id });
+
+    if (mpResult.status === "approved") {
+      const desc = mpResult.description || "";
+      const mesMatch = desc.match(/(\d{1,2})\/(\d{4})/);
+      const clienteMatch = desc.match(/Mensalidade (.+?) -/);
+      if (clienteMatch && mesMatch) {
+        const nome = clienteMatch[1].trim();
+        const m = parseInt(mesMatch[1]), a = parseInt(mesMatch[2]);
+        const cliente = db.clientes.findOne({ nome });
+        if (cliente) {
+          if (!cliente.pagamentos) cliente.pagamentos = [];
+          const idx = cliente.pagamentos.findIndex(p => p.mes === m && p.ano === a);
+          const pag = { mes: m, ano: a, pago: true, dataPagamento: hoje(), valor: mpResult.transaction_amount, formaPagamento: "mercado_pago", transactionId: String(mpResult.id), statusPix: "approved" };
+          if (idx >= 0) cliente.pagamentos[idx] = pag;
+          else cliente.pagamentos.push(pag);
+          db.clientes.update(cliente.id, { pagamentos: cliente.pagamentos });
+          db.transacoes.insert({ tipo: "entrada", categoria: "Mensalidade", descricao: `Mensalidade ${nome} (MP)`, valor: mpResult.transaction_amount, data: hoje(), status: "pago", clienteId: cliente.id });
+          // Atualiza cobranca pendente
+          const cobrancas = (cliente.cobrancas || []).map(cb => cb.id === mpResult.id ? { ...cb, status: "approved" } : cb);
+          db.clientes.update(cliente.id, { cobrancas });
+          io.emit("data_update", { type: "pagamento" });
+          io.emit("pagamento_aprovado", { clienteId: cliente.id, mes: m, ano: a });
+        }
+      }
+    }
+    res.sendStatus(200);
+  } catch (e) {
+    console.error("MP webhook error:", e);
+    res.sendStatus(200);
+  }
+});
+
+app.get("/api/mercado-pago/status/:paymentId", portalAuth, async (req, res) => {
+  try {
+    if (!mpClient) return res.status(400).json({ error: "MP não configurado" });
+    const payment = new Payment(mpClient);
+    const result = await payment.get({ id: req.params.paymentId });
+    res.json({ status: result.status, detail: result.status_detail });
+  } catch {
+    const cobranca = req.cliente?.cobrancas?.find(c => c.id === req.params.paymentId);
+    res.json({ status: cobranca?.status || "unknown" });
+  }
+});
+
+app.get("/api/mercado-pago/config", (_, res) => {
+  res.json({
+    configured: !!mpClient,
+    publicKey: MP_PUBLIC_KEY || null,
+  });
+});
+
 // ── NOTAS FISCAIS ──────────────────────────────────────────────────────────────
 function gerarChaveAcesso() {
   const now=new Date();
@@ -607,6 +855,137 @@ async function queryIA(pergunta) {
   if (cfg.openaiKey&&cfg.openaiKey!=="***") { try { const r=await fetch("https://api.openai.com/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${cfg.openaiKey}`},body:JSON.stringify({model:"gpt-4o-mini",max_tokens:2000,messages:[{role:"system",content:sys},{role:"user",content:`Dados: ${JSON.stringify(ctxIA)}\n\nPergunta: ${pergunta}`}]})});const d=await r.json();return JSON.parse(d.choices?.[0]?.message?.content||"{}");}catch(e){}}
   return queryIACompleta(pergunta,stats);
 }
+
+// ── Backup ────────────────────────────────────────────────────────────────────
+app.get("/api/admin/backup", auth(["super_admin"]), async (req, res) => {
+  const dirs = ["data", "uploads", "auth_info"];
+  res.setHeader("Content-Type", "application/zip");
+  res.setHeader("Content-Disposition", `attachment; filename="nexuspro_backup_${new Date().toISOString().slice(0,10)}.zip"`);
+  const archive = archiver("zip", { zlib: { level: 6 } });
+  archive.pipe(res);
+  for (const d of dirs) {
+    const p = path.join(__dirname, d);
+    if (fs.existsSync(p)) archive.directory(p, d);
+  }
+  archive.file(path.join(__dirname, "package.json"), { name: "package.json" });
+  archive.file(path.join(__dirname, "server.js"), { name: "server.js" });
+  archive.finalize();
+});
+
+// Bank config
+const BOLETO_CFG_PATH = path.join(__dirname, "bank-config.json");
+function loadBankCfg() {
+  try { return JSON.parse(fs.readFileSync(BOLETO_CFG_PATH, "utf8")); } catch { return {}; }
+}
+function saveBankCfg(cfg) {
+  fs.writeFileSync(BOLETO_CFG_PATH, JSON.stringify(cfg, null, 2));
+}
+app.get("/api/config/bancario", auth(), (req, res) => res.json(loadBankCfg()));
+app.put("/api/config/bancario", auth(), (req, res) => {
+  saveBankCfg(req.body); res.json({ ok: true });
+});
+
+// Direct bank boleto generation
+app.post("/api/boleto/direto", auth(), async (req, res) => {
+  try {
+    const { clienteId, valor, banco, agencia, agenciaDigito, conta, contaDigito, carteira, vencimento, multa, mora } = req.body;
+    if (!banco || !clienteId || !valor) return res.status(400).json({ error: "Banco, cliente e valor são obrigatórios" });
+
+    const c = db.clientes.findById(clienteId);
+    if (!c) return res.status(404).json({ error: "Cliente não encontrado" });
+
+    const cfg = loadBankCfg();
+    const bankCfg = cfg[banco] || {};
+    const ag = agencia || bankCfg.agencia || "0000";
+    const agD = agenciaDigito || bankCfg.agenciaDigito || "";
+    const cc = conta || bankCfg.conta || "00000";
+    const ccD = contaDigito || bankCfg.contaDigito || "";
+    const car = carteira || bankCfg.carteira || "09";
+
+    const { Bancos, Boletos } = require("gerar-boletos");
+    const bankMap = {
+      banco_do_brasil: Bancos.BancoDoBrasil,
+      bradesco: Bancos.Bradesco,
+      itau: Bancos.Itau,
+      caixa: Bancos.Caixa,
+      santander: Bancos.Santander,
+    };
+    const BankClass = bankMap[banco];
+    if (!BankClass) return res.status(400).json({ error: `Banco "${banco}" não suportado` });
+
+    const hojeStr = new Date().toLocaleDateString("pt-BR");
+    const vencStr = vencimento ? new Date(vencimento).toLocaleDateString("pt-BR") : new Date(Date.now() + 5 * 86400000).toLocaleDateString("pt-BR");
+    const nossoNum = String(Date.now()).slice(-10);
+
+    const dadosBancarios = {
+      carteira: car,
+      agencia: ag,
+      agenciaDigito: agD || "0",
+      conta: cc,
+      contaDigito: ccD || "0",
+      nossoNumero: nossoNum,
+      nossoNumeroDigito: "0",
+    };
+    if (banco === "banco_do_brasil") {
+      dadosBancarios.convenio = bankCfg.convenio || "1234567";
+    }
+
+    const dados = {
+      banco: new BankClass(),
+      pagador: {
+        nome: c.nome || "Cliente",
+        registroNacional: c.cpfCnpj?.replace(/\D/g, "") || "00000000000",
+        endereco: {
+          logradouro: c.endereco || "Endereço não informado",
+          bairro: c.bairro || "",
+          cidade: c.cidade || "",
+          estadoUF: c.uf || "SP",
+          cep: c.cep?.replace(/\D/g, "") || "00000000",
+        },
+      },
+      instrucoes: [`Após o vencimento, multa de ${multa||2}%`, `Mora de R$ ${(+mora||1.59).toFixed(2)} ao dia`],
+      beneficiario: {
+        nome: bankCfg.nome || bankCfg.razao || "Empresa",
+        cnpj: bankCfg.cnpj?.replace(/\D/g, "") || "00000000000000",
+        dadosBancarios,
+        endereco: {
+          logradouro: bankCfg.endereco || "",
+          bairro: bankCfg.bairro || "",
+          cidade: bankCfg.cidade || "",
+          estadoUF: bankCfg.uf || "SP",
+          cep: bankCfg.cep?.replace(/\D/g, "") || "00000000",
+        },
+      },
+      boleto: {
+        numeroDocumento: nossoNum,
+        especieDocumento: "DM",
+        valor: +valor,
+        datas: { vencimento: vencStr, processamento: hojeStr, documentos: hojeStr },
+      },
+    };
+
+    const novoBoleto = new Boletos(dados);
+    novoBoleto.gerarBoleto();
+    const tmpDir = path.join(__dirname, "tmp", "boletos");
+    if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
+    const { filePath } = await novoBoleto.pdfFile(tmpDir, banco);
+    const fileName = `boleto_${banco}_${Date.now()}.pdf`;
+    const publicPath = path.join(__dirname, "dist", "boletos");
+    if (!fs.existsSync(publicPath)) fs.mkdirSync(publicPath, { recursive: true });
+    fs.copyFileSync(filePath, path.join(publicPath, fileName));
+
+    // Register as transação
+    db.transacoes.insert({
+      tipo: "entrada", categoria: "Boleto", descricao: `Boleto ${c.nome} - ${banco}`,
+      valor: +valor, data: hoje(), status: "pendente", clienteId: c.id,
+    });
+
+    res.json({ ok: true, boleto: { url: `/boletos/${fileName}`, banco, valor, vencimento: vencStr } });
+  } catch (e) {
+    console.error("Boleto error:", e);
+    res.status(500).json({ error: e.message || "Erro ao gerar boleto" });
+  }
+});
 
 // SPA
 app.get("*", (_,res)=>res.sendFile(path.join(__dirname,"dist","index.html")));

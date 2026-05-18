@@ -1,5 +1,14 @@
 [
   {
+    "id": "mpbjq7uxcstwk",
+    "createdAt": "2026-05-18T18:37:12.393Z",
+    "updatedAt": "2026-05-18T18:37:12.393Z",
+    "userId": "mpa4e7i05w2vf",
+    "tipo": "auth",
+    "descricao": "Login",
+    "dados": {}
+  },
+  {
     "id": "mpbdah1b034gk",
     "createdAt": "2026-05-18T15:37:00.095Z",
     "updatedAt": "2026-05-18T15:37:00.095Z",
